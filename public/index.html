@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Node JS Copter Demo</title>
+    <script src="nodecopter-client.js"></script>
+    <script src="http://localhost:3000/socket.io.min.js"></script>
+    <script src="jquery.min.js"></script>
+    <link rel="stylesheet" href="./bootstrap/css/bootstrap.min.css">
+    <script>
+        $(function () {
+
+            function startArDRoneStream() {
+                new NodecopterStream(document.getElementById("placeholder"), {port: 3001});
+            }
+
+            function startCameraFeed() {
+                navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+                var constraints = {audio: false, video: true};
+                var video = document.querySelector("video");
+
+                function successCallback(stream) {
+                    window.stream = stream; // stream available to console
+                    if (window.URL) {
+                        video.src = window.URL.createObjectURL(stream);
+                    } else {
+                        video.src = stream;
+                    }
+                    video.play();
+                }
+
+                function errorCallback(error){
+                    console.log("navigator.getUserMedia error: ", error);
+                }
+
+                navigator.getUserMedia(constraints, successCallback, errorCallback);
+
+            }
+            function startArDroneController(){
+                var socket = io.connect('192.168.1.2:3002');
+                socket.on('connect', function () { // TIP: you can avoid listening on `connect` and listen on events directly too!
+                    console.log("Connection Successful");
+
+                });
+
+                socket.on('event', function (data) {
+
+                    if(data.name=="battery"){
+                        $("#battery-indicator").css('width',data.value+'%');
+                        $("#battery-value").html(data.value+'%');
+                    }
+                });
+
+                $("#despegue").click(function(){
+                    socket.emit('event',{name:"despegue"});
+                });
+                $("#rotar").click(function(){
+                    socket.emit('event',{name:"rotar"});
+                });
+                $("#detener").click(function(){
+                    socket.emit('event',{name:"detener"});
+                });
+                $("#aterrizar").click(function(){
+                    socket.emit('event',{name:"aterrizar"});
+                });
+                $("#izquierda").click(function(){
+                    socket.emit('event', {name:"izquierda"});
+                })
+                $("#derecha").click(function(){
+                    socket.emit('event', {name:"derecha"});
+                })
+                $("#frente").click(function(){
+                    socket.emit('event', {name:"frente"});
+                })
+                $("#atras").click(function(){
+                    socket.emit('event', {name:"atras"});
+                })
+
+            }
+            startArDRoneStream();
+            startCameraFeed();
+            startArDroneController();
+
+        })
+    </script>
+    <style>
+        td {
+            border:1px solid black;
+            border-radius:10px;
+            padding:10px;
+        }
+        button{
+            font-size: 10pt;
+        }
+        #battery{
+            border:1px solid black;
+            width:500px;
+            height:20px;
+            text-align: center;
+        }
+        .bar {
+            margin: 5px 0 3px;
+            border: 6px solid #333;
+            background: #333;
+            overflow: hidden;
+            border-radius: 50px;
+            -moz-border-radius: 50px;
+            -webkit-border-radius: 50px;
+            box-shadow: 1px 1px 1px #777;
+            -moz-box-shadow: 1px 1px 1px #777;
+            -webkit-box-shadow: 1px 1px 1px #777;
+        }
+        .bar > span {
+            display: block;
+            height: 20px;
+            border-radius: 5px;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+        }
+
+        .color0 > span {
+            background-color: #FF0000;
+        }
+     </style>
+</head>
+<body>
+<h1>Drones.</h1>
+<table>
+    <tr>
+        <td >
+            <button id="despegue">Despegar</button>
+            <button id="rotar">Rotar</button>
+            <button id="detener">Detenerse</button>
+            <button id="aterrizar">Aterrizar</button>
+            <button id="izquierda">Izquierda</button>
+            <button id="derecha">Derecha</button>
+            <button id="frente">Frente</button>
+            <button id="atras">Atrás</button>
+        </td>
+        <td>
+
+            <span>pila</span> - <span id="battery-value"></span>
+            <div class="bar color0">
+                <span id="battery-indicator" style="width:50%"></span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <h1>Cámara del dron</h1>
+            <div id="placeholder"></div>
+        </td>
+        <td>
+            <h1>Cámara de laptop</h1>
+            <video id="live" width="640" height="360" autoplay></video>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>
