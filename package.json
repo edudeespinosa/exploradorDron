@@ -1,7 +1,7 @@
 {
     "name": "NodeCopter-Trail",
     "description": "NodeCopter Trail",
-    "author": "Rohit Ghatol",
+    "author": "Eduardo Espinosa",
     "version": "0.0.1",
     "dependencies": {
         "ar-drone": "latest",
